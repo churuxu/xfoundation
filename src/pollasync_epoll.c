@@ -42,6 +42,7 @@
 
 #define return_error(code, opt) {ret = code; IO_DEBUG("%s error %d\n", #opt, ret); return ret;}
 
+#define looper_to_fd(looper) (int)((intptr_t)(looper))
 
 poll_looper_t poll_looper_get_main() {
 	static poll_looper_t mainlooper;
@@ -62,17 +63,17 @@ int poll_looper_create(poll_looper_t* looper) {
 }
 
 int poll_looper_destroy(poll_looper_t looper) {
-	close((int)looper);
+	close(looper_to_fd(looper));
 	return 0;
 }
 
 int poll_looper_fd(poll_looper_t looper) {
-	return (int)looper;
+	return looper_to_fd(looper);
 }
 
 int poll_looper_wait_events(poll_looper_t looper, poll_event* evs, int* count, int timeout) {
 	int ret;
-	int nfd = epoll_wait((int)looper, evs, *count, timeout);
+	int nfd = epoll_wait(looper_to_fd(looper), evs, *count, timeout);
 	*count = nfd;
 	IO_DEBUG("[IO]epoll waited:%d\n", nfd);
 	if (nfd>0)return 0;
@@ -98,7 +99,7 @@ int poll_looper_process_events(poll_looper_t looper, poll_event* results, int co
 			ctx->events |= POLL_WRITEABLE;
 		}
 		if (ctx->flags & POLL_FLAG_ONCE) {
-			if (epoll_ctl((int)looper, EPOLL_CTL_DEL, ctx->fd, NULL)) {
+			if (epoll_ctl(looper_to_fd(looper), EPOLL_CTL_DEL, ctx->fd, NULL)) {
 				IO_DEBUG("epoll_ctl error %d in once\n", errno);
 			}
 		}
@@ -127,10 +128,10 @@ int poll_register(poll_looper_t looper, poll_ctx* ctx, fd_t fd, int flag, int ev
 	if (events & POLL_WRITEABLE) {
 		ev.events |= EPOLLOUT;
 	}	
-	ret = epoll_ctl((int)looper, EPOLL_CTL_ADD, fd, &ev);
+	ret = epoll_ctl(looper_to_fd(looper), EPOLL_CTL_ADD, fd, &ev);
 	if (!ret) return 0;
 	if (errno == EEXIST) {
-		ret = epoll_ctl((int)looper, EPOLL_CTL_MOD, fd, &ev);
+		ret = epoll_ctl(looper_to_fd(looper), EPOLL_CTL_MOD, fd, &ev);
 		if (!ret) return 0;		
 	}
 	return_error(errno, "epoll_ctl");	
@@ -139,7 +140,7 @@ int poll_register(poll_looper_t looper, poll_ctx* ctx, fd_t fd, int flag, int ev
 
 int poll_unregister(poll_looper_t looper, poll_ctx* ctx) {
 	int ret;
-	ret = epoll_ctl((int)looper, EPOLL_CTL_DEL, ctx->fd, NULL);
+	ret = epoll_ctl(looper_to_fd(looper), EPOLL_CTL_DEL, ctx->fd, NULL);
 	if (!ret) return 0;
 	return_error(errno, "epoll_ctl del");
 }
