@@ -1,0 +1,5 @@
+{
+"target":"xfoundation",
+"type":"static",
+"srcdirs":["src"]
+}

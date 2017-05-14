@@ -1,0 +1,8 @@
+{
+"target":"test",
+"srcdirs":["../src","."],
+"includes":["../src"],
+"defines":[],
+"ldflags":["-lpthread"]
+
+}

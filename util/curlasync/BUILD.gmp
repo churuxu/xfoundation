@@ -1,0 +1,6 @@
+{
+"target":"curlasync",
+"srcdirs":["../../src","."],
+"includes":["../../src"],
+"defines":["_CRT_SECURE_NO_WARNINGS"]
+}

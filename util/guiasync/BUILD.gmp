@@ -1,0 +1,13 @@
+{
+"target":"guiasync",
+"srcdirs":["../../src",".","../../test"],
+"includes":["../../src","../../test"],
+"defines":[],
+"exludes":["main.c"],
+
+"apple":{
+    "srcext":".c .cpp .m .mm"
+},
+
+"package":"com.churuxu.xfoundation.guiasync"
+}
