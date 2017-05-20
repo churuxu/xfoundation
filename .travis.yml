@@ -1,0 +1,14 @@
+language: c
+install:
+  - git clone https://github.com/churuxu/gmp
+  - chmod +x gmp/gmp
+  - export PATH=$PATH:$(pwd)/gmp
+script:
+  - cd test
+  - gmp make
+  - cd make
+  - make
+  - ./test
+branches:
+  only:
+    - master 
