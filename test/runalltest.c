@@ -27,7 +27,7 @@ extern void test_ioasync_init();
 extern void test_timerqueue_init();
 extern void test_memstream_init();
 extern void test_pollasync_init();
-
+extern void test_workasync_init();
 
 extern void echo_server_tcp_start(const char*, const char*);
 extern void echo_server_udp_start(const char*, const char*);
@@ -35,12 +35,14 @@ extern void echo_server_udp_start(const char*, const char*);
 void run_all_tests(test_result_callback cb) {
 	echo_server_tcp_start(NULL, TEST_PORT_TCP);
 	echo_server_udp_start(NULL, TEST_PORT_UDP);
-    
+	
+	test_workasync_init();
     test_timerqueue_init();
 	test_pollasync_init();
 	test_ioasync_init();
 	test_memstream_init();	
 	
+
 	test_start(cb);
 }
 

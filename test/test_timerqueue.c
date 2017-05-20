@@ -39,7 +39,7 @@ static void test_delayed_timer(void* arg) {
 		ctx = (myctx*)malloc(sizeof(myctx));
 		memset(ctx, 0, sizeof(myctx));		
 	}
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 	ctx->t = clock_get_tick();
 	ctx->val++;
 	test(0 == timer_add_timeout(timer_queue_get_main(), &ctx->timer, 100, test_delayed_timer, ctx));

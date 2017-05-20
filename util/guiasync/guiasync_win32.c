@@ -23,6 +23,7 @@
 #include "guiasync.h"
 #include "pollasync.h"
 #include "ioasync.h"
+#include "workasync.h"
 #include "timerqueue.h"
 #include "clocks.h"
 
@@ -146,6 +147,8 @@ int gui_async_init() {
 	main_io_looper_ = io_looper_get_main();
 	main_poll_looper_ = poll_looper_get_main();
 	main_timer_queue_ = timer_queue_get_main();
+	ensure(0 == work_async_init(NULL, gui_async_post_callback));
+
 	timer_queue_set_clock(main_timer_queue_, clock_get_tick);
 	timer_queue_set_observer(main_timer_queue_, on_timer_queue_change, (void*)timerid);
 	

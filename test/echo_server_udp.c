@@ -44,7 +44,7 @@ typedef struct _udpctx{
 static void udp_session(void* arg) {
 	udpctx* ctx = (udpctx*)arg;
 
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 	testzero(io_async_init(&ctx->io, io_looper_get_main(), ctx->fd, 0));
 	future_set_callback(&ctx->notify, udp_session, ctx);
 	while (1) {

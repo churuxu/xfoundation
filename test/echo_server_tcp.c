@@ -51,7 +51,7 @@ typedef struct _session_ctx {
 static void tcp_client_session(void* arg) {
 	session_ctx* ctx = (session_ctx*)arg;
 	//printf("tcp_client_session step:%d\n", ctx->step);
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 	testzero(io_async_init(&ctx->io, io_looper_get_main(), ctx->fd, 0));
 	future_set_callback(&ctx->notify, tcp_client_session, ctx);
 	while (1) {		
@@ -81,7 +81,7 @@ error:
 static void tcp_accepter(void* arg) {
 	acepter_ctx* ctx = (acepter_ctx*)arg;
 	session_ctx* client;
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 	testzero(io_async_init(&ctx->io, io_looper_get_main(), ctx->fd, 0));
 	future_set_callback(&ctx->notify, tcp_accepter, ctx);
 	while (1) {

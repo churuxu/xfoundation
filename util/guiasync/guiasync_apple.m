@@ -3,6 +3,7 @@
 #include "clocks.h"
 #include "timerqueue.h"
 #include "ioutil.h"
+#include "workasync.h"
 
 #if defined(__APPLE__) 
 
@@ -30,6 +31,8 @@ int gui_async_init(){
     timer_queue_ = timer_queue_get_main();
     timer_queue_set_observer(timer_queue_, on_timer_queue_change, NULL);
     timer_queue_set_clock(timer_queue_, clock_get_tick);
+	
+	work_async_init(NULL, gui_async_post_callback);
     
     iosource_ = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, poll_looper_fd(poll_looper_), 0, dispatch_get_main_queue());
     

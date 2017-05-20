@@ -57,7 +57,7 @@ typedef void(*future_callback)(void* arg);
 
 
 #define future_enter(linevar) {\
-int* _future_linevar_ = (&(linevar)); \
+int* _future_linevar_ = (linevar); \
 switch (*_future_linevar_) {	\
 case 0:
 
@@ -65,22 +65,29 @@ case 0:
 #define future_leave()  *_future_linevar_=-1;case -1:;}}
 
 
+
 #if defined(_MSC_VER) && defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_APP) 
+
 // __LINE__ is not const when build UAP
-#define future_wait(pfut)  \
-while (!((pfut)->ready)){\
+#define future_yield(action) \
 	*_future_linevar_ = (__COUNTER__+2); \
+action;\
 	return; \
-	case (__COUNTER__+1):continue;\
-}
+	case (__COUNTER__+1):\
+
 #else
 
-#define future_wait(pfut)  \
-while (!((pfut)->ready)){\
+#define future_yield(action)  \
 	*_future_linevar_ = __LINE__; \
+action;\
 	return; \
-	case __LINE__:continue;\
-}
+	case __LINE__:\
+
 #endif
+
+#define future_wait(fut) \
+while(!(fut)->ready){\
+future_yield((void)0); continue;\
+}
 
 

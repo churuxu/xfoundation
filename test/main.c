@@ -58,6 +58,82 @@ static DWORD CALLBACK PollThread(LPVOID arg) {
 	return 1;
 }
 
+#define main_work_queue_init()
+#define main_work_queue_process()
+
+int main_work_queue_post(work_callback cb, void* udata) {
+	return io_looper_post_callback(main_io_looper_, cb, udata);
+}
+#else
+
+typedef struct workitem {
+	work_callback cb;
+	void* udata;
+}workitem;
+
+#ifdef _WIN32
+static CRITICAL_SECTION workqueuelock_;
+static memory_stream_t workqueue_;
+
+int main_work_queue_init() {
+	InitializeCriticalSection(&workqueuelock_);
+	return memory_stream_open(&workqueue_, 8192);
+}
+int main_work_queue_post(work_callback cb, void* udata) {
+	workitem item = {cb, udata};
+	int ret;
+	EnterCriticalSection(&workqueuelock_);
+	ret = (sizeof(item) == memory_stream_write(workqueue_, &item, sizeof(item)));
+	LeaveCriticalSection(&workqueuelock_);
+	poll_looper_wake(main_poll_looper_);
+	return !ret;
+}
+
+void main_work_queue_process() {
+	workitem item[32];
+	size_t ret;
+	size_t i;
+	work_callback cb;
+	EnterCriticalSection(&workqueuelock_);
+	ret = memory_stream_read(workqueue_, item, sizeof(workitem)*32);
+	LeaveCriticalSection(&workqueuelock_);
+	ret /= sizeof(workitem);
+	for (i = 0; i < ret; i++) {
+		cb = item[i].cb;
+		if(cb)cb(item[i].udata);
+	}
+}
+#else
+static int pipefd[2];
+
+int main_work_queue_init() {
+	pipe(pipefd);
+	return io_set_nonblocking(pipefd[1]);	
+}
+
+
+int main_work_queue_post(work_callback cb, void* udata) {
+	workitem item = { cb, udata };
+	int ret;	
+	ret = (sizeof(item) == write(pipefd[1], &item, sizeof(item)));	
+	return !ret;
+}
+
+void main_work_queue_process() {
+	int ret = 0;
+	workitem cmd;
+	while (1) {		
+		ret = (int)read(fd, &cmd, sizeof(cmd));
+		if (ret == sizeof(cmd)) {
+			if(cmd.cb)cmd.cb(cmd.udata);
+		}		
+		break;
+	}
+	return 1;
+}
+
+#endif
+
 #endif
 
 
@@ -92,13 +168,16 @@ int main() {
 
 	main_io_looper_ = io_looper_get_main();
 	main_poll_looper_ = poll_looper_get_main();
-	timerqueue = timer_queue_get_main();
-	
+	timerqueue = timer_queue_get_main();	
 	ensure(main_io_looper_);
 	ensure(main_poll_looper_);
 	ensure(timerqueue);
+
     timer_queue_set_clock(timerqueue, clock_get_tick);
-    
+
+	main_work_queue_init();
+	work_async_init(NULL, main_work_queue_post);
+
 #ifdef IO_ASYNC_USE_IOCP	
 	CreateThread(NULL, 0, PollThread, NULL, 0, NULL);
 #endif
@@ -108,8 +187,10 @@ int main() {
 	run_all_tests(on_test_result);
 
 	while (1) {
-		timer_queue_process(timerqueue, &nextwait);
+		main_work_queue_process();
+		timer_queue_process(timerqueue, &nextwait);		
 		count = 20;
+		if (nextwait > 10000 || nextwait < 0)nextwait = 10000;
 #ifdef NDEBUG
 		if (clock_get_tick() - t1 > (5 * 60 * 1000)) {
 			test_trace("test runed too long");

@@ -22,7 +22,7 @@
 
 #ifdef __ANDROID__
 
-
+#include "workasync.h"
 #include "guiasync.h"
 #include "pollasync.h"
 #include "clocks.h"
@@ -148,6 +148,8 @@ int gui_async_init(){
 	timer_queue_set_clock(timerqueue, clock_get_tick);
 	timer_queue_set_observer(timerqueue, on_timer_queue_change, NULL);
 	nextdelay_ = 60000;
+	
+	ensure(0 == work_async_init(NULL, gui_async_post_callback));
 
 #ifdef __LP64__
 	//arm has no pthread_condattr_setclock

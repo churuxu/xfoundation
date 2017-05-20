@@ -51,7 +51,7 @@ static void test_stream_file(void* arg) {
 		ctx->notify.cb = test_stream_file;
 		ctx->notify.udata = ctx;
 	}
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 		
 	testzero(io_async_write(&ctx->io, 0, "1234567890", 10, &ctx->notify));
 	future_wait(&ctx->notify);
@@ -105,7 +105,7 @@ static void test_random_access_file(void* arg) {
 		ctx->step = 0;
 		future_set_callback(&ctx->notify, test_random_access_file, ctx);
 	}
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 
 	
 	testzero(io_async_write(&ctx->io, 0, "1234567890", 10, &ctx->notify));
@@ -171,7 +171,7 @@ static void test_tcp_socket(void* arg) {
 		future_set_callback(&ctx->notify, test_tcp_socket, ctx);
 	}
 
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 	testzero(io_async_connect(&ctx->io, ctx->ai->ai_addr, (int)ctx->ai->ai_addrlen, &ctx->notify));
 	future_wait(&ctx->notify);
 	testzero(ctx->notify.error);
@@ -224,7 +224,7 @@ static void test_udp_socket(void* arg) {
 		future_set_callback(&ctx->notify, test_udp_socket, ctx);
 	}
 
-	future_enter(ctx->step);
+	future_enter(&ctx->step);
 
 	testzero(io_async_sendto(&ctx->io, "1234567890", 10, ctx->ai->ai_addr, (int)ctx->ai->ai_addrlen, &ctx->notify));
 	future_wait(&ctx->notify);
