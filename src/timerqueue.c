@@ -47,9 +47,7 @@ struct _timer_ctx_internal{
 	timer_ctx_internal* prev;
 	timer_ctx_internal* next;	
 	
-	char loop;
-	char stoped;
-	char noref;
+	char loop;	
 };
 
 struct _timer_queue{
@@ -167,11 +165,11 @@ static int timer_add(timer_queue_t tmq, timer_ctx* out, unsigned int interval, i
 	result->duration = interval;
 	result->expire = ticknow + interval;
 	result->loop = loop;
-	result->stoped = 0;
+	
 	result->userdata = userdata;
 	result->next = NULL;
 	result->prev = NULL;
-	result->noref = 0;
+	
 
 	timer_node_add(tmq, result);
 
