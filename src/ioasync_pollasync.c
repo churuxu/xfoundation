@@ -227,7 +227,7 @@ int io_async_read(io_ctx* ioctx, uint64_t offset, char* buf, size_t buflen, io_f
 			return_error(GetLastError(), "SetFilePointerEx");
 		}
 	}
-	bret = ReadFile((HANDLE)fd, buf, buflen, &len, NULL);
+	bret = ReadFile((HANDLE)fd, buf, (DWORD)buflen, &len, NULL);
 	if (bret) {
 		ctx->length = len;
 		return_ok();
@@ -253,7 +253,7 @@ int io_async_write(io_ctx* ioctx, uint64_t offset, const char* buf, size_t bufle
 			return_error(GetLastError(), "SetFilePointerEx");
 		}
 	}	
-	bret = WriteFile((HANDLE)fd, buf, buflen, &len, NULL);
+	bret = WriteFile((HANDLE)fd, buf, (DWORD)buflen, &len, NULL);
 	if (bret) { 
 		ctx->length = len;
 		return_ok();
@@ -352,7 +352,7 @@ int io_async_accept(io_ctx* ioctx, fd_t* outfd, struct sockaddr* addrbuf, int* p
 static void io_handle_recv(void* arg) {
 	io_future_impl* ctx = (io_future_impl*)arg;	
 	fd_t fd = future_get_fd(ctx);
-	int ret = (int)recv(fd, ctx->buf, ctx->buflen, 0);
+	int ret = (int)recv(fd, ctx->buf, (int)ctx->buflen, 0);
 	if (ret<0) {
 		IO_DEBUG("recv error(%d)\n", last_error());
 		ctx->error = last_error();	
@@ -375,7 +375,7 @@ int io_async_recv(io_ctx* ioctx, char* buf, size_t buflen, io_future* pctx) {
 	ctx = (io_future_impl*)pctx;
 	fd = ioctx->pollctx.fd;
 
-	ret = (int)recv(fd, buf, buflen, 0);
+	ret = (int)recv(fd, buf, (int)buflen, 0);
 	if (ret >= 0) {
 		ctx->length = ret;
 		return_ok();
@@ -395,7 +395,7 @@ int io_async_recv(io_ctx* ioctx, char* buf, size_t buflen, io_future* pctx) {
 static void io_handle_send(void* arg) {
 	io_future_impl* ctx = (io_future_impl*)arg;
 	fd_t fd = future_get_fd(ctx);
-	int ret = (int)send(fd, ctx->buf, ctx->buflen, 0);
+	int ret = (int)send(fd, ctx->buf, (int)ctx->buflen, 0);
 	if (ret == ctx->buflen) {		
 		ctx->error = 0;
 		ctx->ready = 1;
@@ -423,7 +423,7 @@ int io_async_send(io_ctx* ioctx, const char* buf, size_t buflen, io_future* pctx
 	if (!buf || !pctx)return_inval();
 	ctx = (io_future_impl*)pctx;
 	fd = ioctx->pollctx.fd;
-	ret = (int)send(fd, buf, buflen, 0);
+	ret = (int)send(fd, buf, (int)buflen, 0);
 	if (ret == buflen) {
 		ctx->length = ret;
 		return_ok();
@@ -443,7 +443,7 @@ static void io_handle_recvfrom(void* arg) {
 	io_future_impl* ctx = (io_future_impl*)arg;
 	socklen_t addrlen = ctx->paddrlen ? *ctx->paddrlen : 0;
 	fd_t fd = future_get_fd(ctx);
-	int ret = (int)recvfrom(fd, ctx->buf, ctx->buflen, 0, ctx->addrbuf, &addrlen);
+	int ret = (int)recvfrom(fd, ctx->buf, (int)ctx->buflen, 0, ctx->addrbuf, &addrlen);
 	if (ret<0) {
 		ctx->error = last_error();		
 	}
@@ -465,7 +465,7 @@ int io_async_recvfrom(io_ctx* ioctx, char* buf, size_t buflen, struct sockaddr* 
 	if (!buf || !pctx)return_inval();
 	ctx = (io_future_impl*)pctx;
 	fd = ioctx->pollctx.fd;
-	ret = (int)recvfrom(fd, buf, buflen, 0, addrbuf, &addrlen);
+	ret = (int)recvfrom(fd, buf, (int)buflen, 0, addrbuf, &addrlen);
 	if (ret >= 0) {
 		ctx->length = ret;
 		if (paddrlen)*paddrlen = addrlen;		
@@ -488,7 +488,7 @@ int io_async_recvfrom(io_ctx* ioctx, char* buf, size_t buflen, struct sockaddr* 
 static void io_handle_sendto(void* arg) {
 	io_future_impl* ctx = (io_future_impl*)arg;
 	fd_t fd = future_get_fd(ctx);
-	int ret = (int)sendto(fd, ctx->buf, ctx->buflen, 0, ctx->addrbuf, ctx->addrlen);
+	int ret = (int)sendto(fd, ctx->buf, (int)ctx->buflen, 0, ctx->addrbuf, ctx->addrlen);
 	if (ret < 0) {
 		ctx->error = last_error();		
 	}
@@ -509,7 +509,7 @@ int io_async_sendto(io_ctx* ioctx, const char* buf, size_t buflen, const struct 
 	ctx = (io_future_impl*)pctx;
 	fd = ioctx->pollctx.fd;
 
-	ret = (int)sendto(fd, buf, buflen, 0, addr, addrlen);
+	ret = (int)sendto(fd, buf, (int)buflen, 0, addr, addrlen);
 	if (ret >= 0) {
 		ctx->length = ret;		
 		return_ok();
