@@ -3,6 +3,10 @@
 "srcdirs":["../src","."],
 "includes":["../src"],
 "defines":[],
-"ldflags":["-lpthread"]
+"ldflags":["-lpthread"],
+
+"linux":{
+    "ldflags":["-lrt"]
+}
 
 }

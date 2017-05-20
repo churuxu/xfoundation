@@ -1,6 +1,6 @@
 cd test
 pwd
-gmp make || exit 1
+gmp make linux || exit 1
 cd make
 pwd
 make || exit 1
