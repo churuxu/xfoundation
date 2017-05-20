@@ -1,4 +1,6 @@
-﻿xfoundation是一个使用c语言开发的跨平台的基础库，着重于异步处理。
+﻿#travis-ci [![image](https://travis-ci.org/churuxu/xfoundation.svg?branch=master)](https://travis-ci.org/churuxu/xfoundation)
+
+xfoundation是一个使用c语言开发的跨平台的基础库，着重于异步处理。
 
 功能：
  异步IO
