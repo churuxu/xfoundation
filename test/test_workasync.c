@@ -29,7 +29,7 @@
 #else
 #include <pthread.h>
 #define mssleep(ms) usleep(ms*1000)
-#define trace_with_tid(msg) test_trace("%s at  thread:%p\n",msg, pthread_self())
+#define trace_with_tid(msg) test_trace("%s at  thread:%x\n",msg, (int)(intptr_t)pthread_self())
 #endif
 
 typedef struct _myctx{	

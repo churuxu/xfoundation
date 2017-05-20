@@ -58,7 +58,7 @@ static DWORD CALLBACK PollThread(LPVOID arg) {
 	return 1;
 }
 
-#define main_work_queue_init()
+#define main_work_queue_init() 
 #define main_work_queue_process()
 
 int main_work_queue_post(work_callback cb, void* udata) {
@@ -105,10 +105,25 @@ void main_work_queue_process() {
 }
 #else
 static int pipefd[2];
+static poll_ctx pollctx_;
+
+void on_work_queue_readable(void* arg){
+	int ret = 0;
+	workitem cmd;
+	while (1) {		
+		ret = (int)read(pipefd[0], &cmd, sizeof(cmd));
+		if (ret == sizeof(cmd)) {
+			if(cmd.cb)cmd.cb(cmd.udata);
+		}		
+		break;
+	}	
+}
 
 int main_work_queue_init() {
-	pipe(pipefd);
-	return io_set_nonblocking(pipefd[1]);	
+	int ret = pipe(pipefd);
+	ret |= io_set_nonblocking(pipefd[0]);	
+	ret |= poll_register(main_poll_looper_, &pollctx_, pipefd[0], 0, POLL_READABLE, on_work_queue_readable, NULL);
+	return ret;
 }
 
 
@@ -119,18 +134,8 @@ int main_work_queue_post(work_callback cb, void* udata) {
 	return !ret;
 }
 
-void main_work_queue_process() {
-	int ret = 0;
-	workitem cmd;
-	while (1) {		
-		ret = (int)read(fd, &cmd, sizeof(cmd));
-		if (ret == sizeof(cmd)) {
-			if(cmd.cb)cmd.cb(cmd.udata);
-		}		
-		break;
-	}
-	return 1;
-}
+#define main_work_queue_process()
+
 
 #endif
 
@@ -154,8 +159,7 @@ void on_test_result(int total, int ok, int fail) {
 int main() {
 	io_event ctxs[20];
 	int count;
-	int nextwait = 0;
-	uint64_t t1; 
+	int nextwait = 0;	
 	timer_queue_t timerqueue;
 
 #ifdef _WIN32
@@ -182,7 +186,6 @@ int main() {
 	CreateThread(NULL, 0, PollThread, NULL, 0, NULL);
 #endif
 
-	t1 = clock_get_tick();
 
 	run_all_tests(on_test_result);
 
