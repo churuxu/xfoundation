@@ -4,11 +4,9 @@ install:
   - chmod +x gmp/gmp
   - export PATH=$PATH:$(pwd)/gmp
 script:
-  - cd test
-  - gmp make
-  - cd make
-  - make
-  - ./test
+  - chmod +x test.sh
+  - ./test.sh
 branches:
   only:
     - master 
+    
