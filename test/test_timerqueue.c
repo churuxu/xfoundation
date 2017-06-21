@@ -110,25 +110,77 @@ static void test_multi_timer(void* arg) {
 	int i;	
 	timer_ctx* ctx;
 	int timeout = 100;
-	timers_ = malloc(sizeof(timer_ctx) * TIMER_NUM);
+	timers_ = (timer_ctx*)malloc(sizeof(timer_ctx) * TIMER_NUM);
 	mt1_ = clock_get_tick();	
 	for (i = 0; i < TIMER_NUM; i++) {
 		ctx = timers_ + i;
-		if (i % 1000 == 0) timeout+=30;
+		if (i % 4096 == 0) timeout+=30;		
 		testzero(timer_add_interval(timer_queue_get_main(), ctx, timeout, test_multi_timer_, ctx));
 	}
 	mt2_ = clock_get_tick();
 	test_trace("%s add timer used:%d ms max timeout:%d\n",__FUNCTION__, (int)(mt2_ - mt1_), timeout);
 	return;
 error:
-	free(ctx);
+	free(timers_);
 	test_fail();
 }
 
+typedef struct random_timer_ctx{
+	timer_ctx timer;
+	int val;
+	int expect;
+}random_timer_ctx;
+
+#define MAX_RANDOM_CTX  100
+static random_timer_ctx* randomctxs_;
+static int randomcount_ ;
+
+static void test_random_timer_(void* arg) {
+	random_timer_ctx* ctx = (random_timer_ctx*)arg;
+	//printf("on timer %x\n", &ctx->timer);
+	ctx->val ++;
+	if(ctx->expect == 1){
+		randomcount_ ++;
+	}
+	if(ctx->expect > 1 && ctx->expect == ctx->val){
+		timer_cancel(timer_queue_get_main(), &ctx->timer);
+		randomcount_ ++;
+	}
+	if (randomcount_ >= MAX_RANDOM_CTX) {		
+		free(randomctxs_);
+		test_ok();
+	}
+}
+
+static void test_random_timer(void* arg) {
+	int i;	
+	random_timer_ctx* ctx;
+	int timeout = 100;
+	randomctxs_ = (random_timer_ctx*)malloc(sizeof(random_timer_ctx) * MAX_RANDOM_CTX);	
+	srand((int)clock_get_tick());
+	for (i = 0; i < MAX_RANDOM_CTX; i++) {
+		ctx = randomctxs_ + i;
+		timeout = 100 + rand() % 128;
+		ctx->val = 0;
+		ctx->expect = 1 + rand() % 4;
+		if(ctx->expect>1){
+			testzero(timer_add_interval(timer_queue_get_main(), &ctx->timer, timeout, test_random_timer_, ctx));
+		}else{
+			testzero(timer_add_timeout(timer_queue_get_main(),  &ctx->timer, timeout, test_random_timer_, ctx));
+		}		
+	}	
+	return;
+error:
+	free(randomctxs_);
+	test_fail();
+}
+
+
 void test_timerqueue_init() {
-	
+	test_register(test_random_timer);
+	test_register(test_multi_timer);
 	test_register(test_delayed_timer);
 	test_register(test_interval_timer);
-	test_register(test_multi_timer);
+	
 }
 
