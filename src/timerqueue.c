@@ -138,7 +138,8 @@ static void timer_node_remove(timer_queue_t tmq, timer_ctx_internal* node) {
 		node->prev->next = node->next;
 	}
 	else {
-		tmq->first_timer_ = node->next;
+		if(node == tmq->first_timer_)
+			tmq->first_timer_ = node->next;
 	}
 	if (node->next)node->next->prev = node->prev;
 	if (tmq->first_timer_)tmq->first_timer_->prev = NULL;
@@ -147,6 +148,8 @@ static void timer_node_remove(timer_queue_t tmq, timer_ctx_internal* node) {
 			tmq->cur_timer_ = node->next;
 		}
 	}
+	node->next = NULL;
+	node->prev = NULL;
 }
 
 
