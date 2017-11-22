@@ -62,10 +62,10 @@ static void check_multi_info(void){
 			curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &ctx);
 			curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, NULL);
 			//curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &ctx);
-			//printf("%s DONE\n", done_url);			
-			if(ctx && ctx->cb)ctx->cb(ctx->userdata);
-			free(ctx);
+			//printf("%s DONE\n", done_url);
 			curl_multi_remove_handle(curl_multi_, easy_handle);
+			if(ctx && ctx->cb)ctx->cb(ctx->userdata);
+			free(ctx);			
 			break;
 		default:			
 			//fprintf(stderr, "CURLMSG default\n");

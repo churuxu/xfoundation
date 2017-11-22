@@ -22,9 +22,13 @@
 
 #pragma once
 
-
+#ifndef __CURL_CURL_H
 #include "curl/curl.h"
+#endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
 
 typedef void (*curl_async_callback)(void* arg);
 
@@ -32,3 +36,6 @@ int curl_async_init();
 
 int curl_async_perform(CURL* curl, curl_async_callback cb, void* userdata);
 
+#ifdef __cplusplus
+}
+#endif 
