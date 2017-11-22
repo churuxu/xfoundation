@@ -37,6 +37,7 @@
 #define WM_POST_RUN (WM_USER+100)
 #define WM_PROCESS_IO (WM_USER+101)
 #define WM_PROCESS_POLL (WM_USER+102)
+#define WM_PROCESS_TIMER (WM_USER+103)
 
 static HWND wnd_handler_;
 static io_looper_t main_io_looper_;
@@ -62,6 +63,12 @@ static LRESULT CALLBACK HandlerWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LP
 				poll_looper_process_events(main_poll_looper_, (poll_event*)wParam, (int)lParam);
 			}
 			return 1;
+		case WM_PROCESS_TIMER:
+			if (1) {
+				int newdelay = 60000;
+				timer_queue_process(main_timer_queue_, &newdelay);
+			}
+			return 1;
         default:
             break;
     }
@@ -81,7 +88,12 @@ static VOID CALLBACK OnTimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD d
 }
 
 static void on_timer_queue_change(void* udata, int newdelay) {
-	SetTimer(NULL, (UINT_PTR)udata, newdelay, OnTimerProc);
+	if (newdelay <= 0) {
+		PostMessage(wnd_handler_, WM_PROCESS_TIMER, (WPARAM)0, (LPARAM)0);
+	}
+	else {
+		SetTimer(NULL, (UINT_PTR)udata, newdelay, OnTimerProc);
+	}
 }
 
 
