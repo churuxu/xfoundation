@@ -25,21 +25,32 @@
 
 #include "ioasync.h"
 
+
+#define SSL_FLAG_CLIENT_MODE  0
+#define SSL_FLAG_SERVER_MODE  0x01
+#define SSL_FLAG_VERIFY_PEER  0x02
+
+
 typedef struct _ssl_config {
-	int server;
+	const char* cert;
+	const char* key;
+	const char* ca;
+	int flags;
 }ssl_config;
 
 typedef struct _ssl_ctx ssl_ctx;
 
+/** init ssl_ctx, for client, ssl_config* can be NULL */
 int ssl_ctx_init(ssl_ctx** out, io_ctx* io, ssl_config* config);
 
+/** free ssl_ctx */
 int ssl_ctx_free(ssl_ctx* ctx);
 
-/** async connect tcp socket */
+/** async handshake, must after connect  */
 int ssl_async_handshake(ssl_ctx* ctx, io_future* fut);
 
-/** async read tcp socket */
+/** async read ssl socket */
 int ssl_async_recv(ssl_ctx* ctx, char* buf, size_t buflen, io_future* fut);
 
-/** async write tcp socket */
+/** async write ssl socket */
 int ssl_async_send(ssl_ctx* ctx, const char* buf, size_t buflen, io_future* fut);
